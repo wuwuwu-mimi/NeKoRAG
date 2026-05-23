@@ -38,3 +38,14 @@ class DocumentChunk(BaseModel):
 
     page_content: str = Field(..., description="当前切片的纯文本内容")
     metadata: ChunkMetadata = Field(..., description="绑定的结构化元数据对象")
+
+
+class RerankResult(BaseModel):
+    """
+    精排后的单条检索结果，包含下游 LLM / 前端所需的所有字段
+    """
+
+    chunk_id: str = Field(..., description="切片 ID")
+    text: str = Field(..., description="切片原始文本")
+    metadata: dict = Field(..., description="结构化元数据（标题、上下文指针等）")
+    score: float = Field(..., description="cross-encoder 相关性分数，越高越相关")

@@ -22,7 +22,8 @@ class NeKoEmbeddings(Embeddings):
     def __init__(self, model_name: str = "bge-m3:latest"):
         win_ip = get_windows_ip()
         default_url = f"http://{win_ip}:11434"
-        base_url = os.getenv("EMBEDDING_BASE_URL", default=default_url)
+        # .env 中空字符串视为未设置，走默认值
+        base_url = os.getenv("EMBEDDING_BASE_URL") or default_url
 
         print(f"[NeKoEmbeddings] 初始化向量模型 [{model_name}]，目标地址: {base_url}")
 
@@ -51,7 +52,7 @@ class NeKoEmbeddings(Embeddings):
         return []  # unreachable，但让类型检查满意
 
     def embed_query(self, text: str) -> List[float]:
-        """对单条查询文本进行向量化，内置重试"""
+        """对单条查询文本进行向量化"""
         if not text:
             return []
 
@@ -73,5 +74,5 @@ class NeKoEmbeddings(Embeddings):
 
 def get_embedding_model() -> Embeddings:
     """获取系统统一配置的 Embedding 模型实例"""
-    model_name = os.getenv("EMBEDDING_MODEL_NAME", "bge-m3:latest")
+    model_name = os.getenv("EMBEDDING_MODEL_NAME") or "bge-m3:latest"
     return NeKoEmbeddings(model_name=model_name)

@@ -91,7 +91,7 @@ def hybrid_search(
 
     candidate_k 设得比 final_top_k 大，保证融合时有足够候选池
     """
-    # 获取 Chroma 集合（与入库时使用的相同）
+    
     import os
     db_path = os.getenv("CHROMA_DB_PATH", "./data/chroma_db")
     collection_name = os.getenv("CHROMA_COLLECTION_NAME", "neko_collection")
