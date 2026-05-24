@@ -7,7 +7,7 @@ from fastapi import APIRouter, HTTPException
 from fastapi.responses import StreamingResponse
 
 from retrieval.hybrid import hybrid_search
-from retrieval.reranker import NeKoReranker
+from retrieval.reranker import NeKoReranker, expand_context
 from generation.generator import NeKoGenerator
 from .schemas import (
     QueryRequest,
@@ -48,7 +48,7 @@ async def query(request: QueryRequest):
 
         ranker = NeKoReranker()
         results = ranker.rerank(
-            query=request.query, chunk_ids=candidates, top_k=5
+            query=request.query, chunk_ids=candidates, top_k=8
         )
 
         if not results:
@@ -57,8 +57,11 @@ async def query(request: QueryRequest):
                 sources=[],
             )
 
+        # 沿链表指针扩展相邻 chunk，覆盖跨切片的内容（如多周的文档）
+        expanded = expand_context(results, depth=2)
+
         generator = NeKoGenerator()
-        answer = generator.generate(query=request.query, results=results)
+        answer = generator.generate(query=request.query, results=expanded)
 
         return QueryResponse(
             answer=answer,
@@ -81,12 +84,14 @@ async def query_stream(request: QueryRequest):
 
             ranker = NeKoReranker()
             results = ranker.rerank(
-                query=request.query, chunk_ids=candidates, top_k=5
+                query=request.query, chunk_ids=candidates, top_k=8
             )
 
             if not results:
                 yield f"data: {json.dumps({'error': '未检索到相关内容'})}\n\n"
                 return
+
+            expanded = expand_context(results, depth=2)
 
             sources = _build_sources(results)
             source_data = [s.model_dump() for s in sources]
@@ -94,7 +99,7 @@ async def query_stream(request: QueryRequest):
 
             generator = NeKoGenerator()
             for token in generator.generate_stream(
-                query=request.query, results=results
+                query=request.query, results=expanded
             ):
                 yield f"data: {json.dumps({'type': 'token', 'data': token})}\n\n"
 
@@ -124,12 +129,15 @@ async def retrieval_only(request: QueryRequest):
 
         ranker = NeKoReranker()
         results = ranker.rerank(
-            query=request.query, chunk_ids=candidates, top_k=5
+            query=request.query, chunk_ids=candidates, top_k=8
         )
+
+        # 扩展上下文后返回，方便调试时看到 LLM 实际接收到的内容
+        expanded = expand_context(results, depth=2)
 
         return RetrievalResponse(
             query=request.query,
-            results=_build_sources(results),
+            results=_build_sources(expanded),
         )
 
     except Exception as e:
