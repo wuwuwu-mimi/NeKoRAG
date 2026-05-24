@@ -64,6 +64,11 @@ class NeKoReranker:
             },
             timeout=30,
         )
+        if not resp.ok:
+            print(
+                f"[NeKoReranker] API 返回 {resp.status_code}: {resp.text[:500]}\n"
+                f"模型: {self._model}, key 前缀: {self._api_key[:8]}..."
+            )
         resp.raise_for_status()
         data = resp.json()
 

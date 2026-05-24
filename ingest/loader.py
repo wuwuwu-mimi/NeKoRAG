@@ -1,4 +1,4 @@
-from typing import List
+from typing import List, Optional
 from langchain_community.document_loaders import DirectoryLoader, TextLoader
 from langchain_core.documents import Document
 import os
@@ -9,10 +9,28 @@ _UPLOAD_DIR = os.path.join(
 )
 
 
-def document_load() -> List[Document]:
-    """从 data/uploads 目录加载所有 Markdown 文件"""
-    # 规范化路径并校验目录是否存在，避免路径错误时的隐蔽异常
+def document_load(file_path: Optional[str] = None) -> List[Document]:
+    """
+    加载待入库文档
+
+    Args:
+        file_path: 指定单个文件路径时只加载该文件；为 None 时加载整个 uploads 目录
+
+    Returns:
+        LangChain Document 列表
+    """
     upload_path = os.path.normpath(_UPLOAD_DIR)
+
+    if file_path:
+        # 单文件模式：API 上传时只处理新文件，避免重跑全量
+        if not os.path.isfile(file_path):
+            raise FileNotFoundError(f"文件不存在: {file_path}")
+        if not file_path.endswith((".md", ".txt")):
+            raise ValueError(f"仅支持 .md 或 .txt 文件: {file_path}")
+        loader = TextLoader(file_path, autodetect_encoding=True)
+        return loader.load()
+
+    # 全量模式：扫描整个 uploads 目录
     if not os.path.isdir(upload_path):
         raise FileNotFoundError(f"上传目录不存在: {upload_path}")
 
@@ -24,5 +42,4 @@ def document_load() -> List[Document]:
         show_progress=True,
     )
 
-    docs = loader.load()
-    return docs
+    return loader.load()
