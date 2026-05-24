@@ -1,7 +1,7 @@
 [project]
 name = "nekorag"
 version = "0.1.0"
-description = "Add your description here"
+description = "混合检索 (Dense + BM25 + RRF) + Cross-encoder 精排 + 上下文扩展的 RAG 后台服务"
 readme = "README.md"
 requires-python = ">=3.11, <3.13"
 dependencies = [
