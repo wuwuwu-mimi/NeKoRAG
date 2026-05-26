@@ -1,0 +1,29 @@
+# NeKoRAG — RAG 知识库后台服务
+#
+# 前置条件: Windows 侧已运行 Ollama，已拉取 bge-m3:latest
+# 启动: docker compose up -d
+# API: http://localhost:8000
+# 健康检查: http://localhost:8000/health
+
+services:
+  app:
+    build: .
+    container_name: nekorag-api
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      # 宿主机（Windows）上的 Ollama，WSL 中通过此 IP 访问
+      - EMBEDDING_BASE_URL=http://172.27.0.1:11434
+      - EMBEDDING_MODEL=bge-m3:latest
+      - CHROMA_DB_PATH=/app/data/chroma_db
+      - PYTHONPATH=/app
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 15s
+      timeout: 5s
+      retries: 3
