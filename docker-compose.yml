@@ -1,11 +1,30 @@
 # NeKoRAG — RAG 知识库后台服务
 #
-# 前置条件: Windows 侧已运行 Ollama，已拉取 bge-m3:latest
-# 启动: docker compose up -d
-# API: http://localhost:8000
+# 启动:   docker compose up -d
+# API:    http://localhost:8000
 # 健康检查: http://localhost:8000/health
+#
+# === 默认模式：使用宿主机（Windows）上已有的 Ollama ===
+# 无需额外配置，直接 docker compose up -d 即可。
+#
+# === WSL 独立模式：没有宿主机 Ollama，在 Docker 内跑一个 ===
+# 1. 取消下面 ollama 服务和 app.environment 中两行注释
+# 2. docker compose up -d
+# 3. docker compose exec ollama ollama pull bge-m3:latest
+# 4. docker compose restart app
 
 services:
+  # # ==================== Ollama（可选，WSL 独立模式）====================
+  # ollama:
+  #   image: ollama/ollama:latest
+  #   container_name: nekorag-ollama
+  #   ports:
+  #     - "11434:11434"
+  #   volumes:
+  #     - ollama_data:/root/.ollama
+  #   restart: unless-stopped
+
+  # ==================== NeKoRAG API ====================
   app:
     build: .
     container_name: nekorag-api
@@ -14,16 +33,26 @@ services:
     env_file:
       - .env
     environment:
-      # 宿主机（Windows）上的 Ollama，WSL 中通过此 IP 访问
+      # 宿主机（Windows）Ollama，WSL 中通过此 IP 访问
       - EMBEDDING_BASE_URL=http://172.27.0.1:11434
+      # # WSL 独立模式：改为连接 docker-compose 内的 ollama 服务
+      # - EMBEDDING_BASE_URL=http://ollama:11434
       - EMBEDDING_MODEL=bge-m3:latest
       - CHROMA_DB_PATH=/app/data/chroma_db
       - PYTHONPATH=/app
     volumes:
       - ./data:/app/data
+    # # WSL 独立模式时取消下面注释，等 ollama 启动后再启 app
+    # depends_on:
+    #   ollama:
+    #     condition: service_started
     restart: unless-stopped
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 15s
       timeout: 5s
       retries: 3
+
+# # WSL 独立模式时取消下面注释
+# volumes:
+#   ollama_data:
