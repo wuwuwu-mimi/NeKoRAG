@@ -96,8 +96,8 @@ async def upload_document(file: UploadFile = File(...)):
     if not file.filename:
         raise HTTPException(400, "文件名不能为空")
 
-    if not file.filename.endswith((".md", ".txt")):
-        raise HTTPException(400, "仅支持 .md 或 .txt 文件")
+    if not file.filename.endswith((".md", ".txt", ".pdf")):
+        raise HTTPException(400, "仅支持 .md / .txt / .pdf 文件")
 
     # 用 UUID 重命名，避免同名冲突；原始文件名存入 sidecar 供前端展示
     doc_uuid = uuid.uuid4().hex[:12]

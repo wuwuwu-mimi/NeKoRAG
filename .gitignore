@@ -1,14 +1,28 @@
-# Python-generated files
+# Python
 __pycache__/
 *.py[oc]
 build/
 dist/
 wheels/
 *.egg-info
-documents/
 
-
-.pdf
-test/
 # Virtual environments
 .venv
+
+# Environment secrets
+.env
+
+# Claude Code
+.claude/
+
+# Data (runtime artifacts — not tracked)
+data/uploads/*
+data/chroma_db/*
+data/bm25_index/*
+data/eval_report.json
+
+# Keep test PDFs and data directory structure
+!data/test_pdfs/
+!data/uploads/.gitkeep
+!data/chroma_db/.gitkeep
+!data/bm25_index/.gitkeep
