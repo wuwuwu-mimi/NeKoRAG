@@ -15,6 +15,9 @@ wheels/
 # Claude Code
 .claude/
 
+# Design documents (local reference only)
+documents/
+
 # Data (runtime artifacts — not tracked)
 data/uploads/*
 data/chroma_db/*
